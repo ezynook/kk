@@ -401,6 +401,7 @@ const Payment: React.FC = () => {
                 onChange={handleCardInputChange}
               />
               {errors.cvv && <div className="error-message">{errors.cvv}</div>}
+              {errors.cvv && <div className="error-message">{errors.cvv}</div>}
             </div>
           </div>
         )}
