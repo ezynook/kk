@@ -121,9 +121,9 @@ const Payment: React.FC = () => {
       } else {
         setError(""); // Clear the error if a wallet is selected
       }
-      alert("Payment successfully!"); // Success alert for wallet payment
       console.log(`Payment confirmed using ${wallet}`);
       navigate("/review"); // Navigate directly for wallet
+
     } else if (method === "card") {
       if (validateForm()) {
         alert("Payment successfully!"); // Success alert for card payment
@@ -133,6 +133,28 @@ const Payment: React.FC = () => {
     } else {
       setError("Please Select Payment Method."); // Error if no payment method is selected
     }
+// Pasit 
+  const data = {
+    "amount": 500,
+    "istype": method,
+    "method": wallet || 'debit/credit',
+    "date": "2024-12-01",
+    "booking_id": localStorage.getItem("book_id"),
+    "promotion_id": 2
+  };
+
+  console.log(data);
+  
+  
+
+  fetch("http://127.0.0.1:8000/add/payment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  alert("Payment successfully!"); // Success alert for wallet payment
   };
 
   const menuItems = [

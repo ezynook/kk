@@ -102,40 +102,46 @@ const Review: React.FC = () => {
   // เพิ่มการแสดงข้อความสุภาพ
   if (!containsOffensiveWord) {
       alert(` "${reviewText}" `);
-      return; // หยุดการทำงานหลังแสดงข้อความ
+      // return; // หยุดการทำงานหลังแสดงข้อความ
   }
 
-    if (!reviewText.trim()) {
-        alert("Please write a comment before submitting your review.");
-        return;
-    }
+  if (!reviewText.trim()) {
+      alert("Please write a comment before submitting your review.");
+      return;
+  }
 
-    if (feedbackOptions.length === 0) {
-        alert("Please select at least one feedback option.");
-        return;
-    }
-    
-    // ส่วนที่ส่งรีวิว (ถ้าผ่านทุกเงื่อนไข)
-    const newReview: ReviewInterface = {
-        reviewId: '',
-        Rating: rating,
-        Comment: reviewText.trim(),
-        DriverID: driver?.id,
-        PassengerID: passenger?.id,
-    };
-
+  if (feedbackOptions.length === 0) {
+      alert("Please select at least one feedback option.");
+      return;
+  }
+  
     try {
-        const response = await CreateReview(newReview);
-        if (response?.success) {
-            alert("Review Submitted Successfully!");
-            navigate("/review/history");
-        } else {
-            alert("Failed to submit review. Please try again later.");
-        }
-    } catch (error) {
-        console.error("Error submitting review:", error);
-        alert("An error occurred while submitting the review.");
-    }
+      const fetchResponse = await fetch("http://127.0.0.1:8000/add/comment", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+              rating: rating,
+              comment: reviewText.trim(),
+              booking_id: localStorage.getItem("book_id"),
+              passenger_id: passenger?.id,
+              driver_id: driver?.id,
+          }),
+      });
+  
+      if (!fetchResponse.ok) {
+          throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+      }
+  
+      const result = await fetchResponse.json(); // รับข้อมูลจาก API
+      console.log("API Response:", result);
+      alert("Review Submitted Successfully!");
+      navigate("/review/history");
+  } catch (error) {
+      console.error("Error during fetch:", error);
+      alert("Failed to submit review. Please try again.");
+  }
 };
         const handleCancel = () => {
             console.log("/payment");
