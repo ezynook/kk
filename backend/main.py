@@ -8,7 +8,6 @@ import pandas as pd
 import json
 from pydantic import BaseModel
 import sqlite3
-from sqlalchemy import create_engine
 
 app = FastAPI(
     prefix="/Cabana",
@@ -40,7 +39,7 @@ class AddComment(BaseModel):
     driver_id: int = 1
 
 database_path = "cabana.db"
-engine = create_engine(f"sqlite:///{database_path}")
+engine = sqlite3.connect(database_path)
 
 @app.get("/", include_in_schema=False)
 async def index():
@@ -69,16 +68,17 @@ async def add_pay(item: AddPayment):
         )
     """
     try:
-        with engine.begin() as conn: 
-            conn.execute(sql)
-            last_id = conn.scalar("SELECT last_insert_rowid()")
-            if item.istype == 'card':
-                conn.execute(f"""
-                    INSERT INTO
-                        paids (card_type, payment_id)
-                    VALUES ('{item.method}', {last_id})     
-                """)
-                
+        cursor = engine.cursor()
+        cursor.execute(sql)
+        engine.commit()
+        last_id = cursor.lastrowid
+        if item.method == 'debit/credit':
+            cursor.execute(f"""
+                INSERT INTO
+                    paids (card_type, payment_id)
+                VALUES ('{item.method}', {last_id})     
+            """)
+        engine.commit()
         return {'message': 'success', 'id': last_id}
     except Exception as e:
         return {'message': e, 'sql': sql}
@@ -86,7 +86,7 @@ async def add_pay(item: AddPayment):
 @app.post("/add/comment", tags=['Review'])
 async def add_comment(item: AddComment):
     sql = f"""
-        INSERT OR REPLACE INTO
+        INSERT INTO
             reviews (
                 rating,
                 comment,
@@ -103,12 +103,13 @@ async def add_comment(item: AddComment):
         )
     """
     try:
-        with engine.begin() as conn: 
-            conn.execute(sql)
-            last_id = conn.scalar("SELECT last_insert_rowid()")
+        cursor = engine.cursor()
+        cursor.execute(sql)
+        engine.commit()
+        last_id = cursor.lastrowid
         return {'message': 'success', 'id': last_id}
     except Exception as e:
-        return {'message': e, 'sql': sql}
+        return {'message': e}
     
 @app.get("/get/promotion", tags=["Promotion"])
 async def get_promo(code: str, booking_id: int = None):
