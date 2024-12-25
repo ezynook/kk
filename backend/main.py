@@ -1,6 +1,3 @@
-#Start API -> uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-#Go Run -> go run main.go
-#frint end -> npm run dev 
 from fastapi import *
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
